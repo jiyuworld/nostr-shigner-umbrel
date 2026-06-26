@@ -1,0 +1,12 @@
+{
+  "name": "nostr shigner · nostr self-hosted signer",
+  "short_name": "nostr shigner",
+  "description": "nostr self-hosted signer",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0e11",
+  "theme_color": "#0d0e11",
+  "icons": []
+}

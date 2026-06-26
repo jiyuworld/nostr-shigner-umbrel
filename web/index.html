@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
+        <meta name="csrf-token" content="{{CSRF}}" />
+        <title>nostr shigner</title>
+        <link rel="stylesheet" href="style.css" />
+        <meta name="theme-color" content="#0d0e11" />
+        <script src="theme.js"></script>
+    </head>
+    <body>
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+        <div id="authGate" class="authgate">
+            <div class="authcard">
+                <div class="authbrand">nostr-shigner</div>
+                <h1 id="authTitle" class="authtitle">checking…</h1>
+                <p id="authHint" class="authhint"></p>
+                <form id="authForm" autocomplete="on" hidden>
+                    <input
+                        id="authPw"
+                        class="input"
+                        type="password"
+                        placeholder="password"
+                        autocomplete="current-password"
+                        spellcheck="false"
+                    />
+                    <input
+                        id="authPw2"
+                        class="input"
+                        type="password"
+                        placeholder="confirm password"
+                        autocomplete="new-password"
+                        spellcheck="false"
+                        hidden
+                    />
+                    <div id="authErr" class="autherr" hidden></div>
+                    <button
+                        id="authBtn"
+                        class="btn btn--green btn--block"
+                        type="submit"
+                    >
+                        log in
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <header class="topbar">
+            <div class="brand">
+                <span class="wordmark">nostr-shigner</span>
+                <span class="tagline">nostr self-hosted signer</span>
+            </div>
+            <button id="themeBtn" class="iconbtn"></button>
+        </header>
+
+        <main class="screen">
+            <div id="warnBox" class="banner banner--warn" hidden></div>
+
+            <section class="tab-panel active" data-tab="status">
+                <div class="seal-stage">
+                    <div class="prompt">
+                        status<span class="cursor">█</span>
+                    </div>
+                    <div
+                        id="seal"
+                        class="seal seal--unknown"
+                        aria-live="polite"
+                    ></div>
+                    <div id="stateLabel" class="state-label">
+                        checking status…
+                    </div>
+                    <div id="stateSub" class="state-sub"></div>
+                    <div id="npubRow" class="npub-row copyrow" hidden>
+                        <div id="npub" class="npub mono"></div>
+                        <button class="btn btn--ghost" data-copy="#npub">
+                            copy
+                        </button>
+                    </div>
+                </div>
+
+                <div class="stack">
+                    <section class="card" id="cardArm">
+                        <h2 class="card__title">daemon</h2>
+                        <p class="card__hint" id="armHint"></p>
+                        <div id="armControls"></div>
+                    </section>
+
+                    <section class="card" id="cardNc" hidden>
+                        <h2 class="card__title">nostrconnect</h2>
+                        <p class="card__hint"></p>
+                        <div class="ncrow">
+                            <input
+                                id="ncInputStatus"
+                                class="input mono"
+                                placeholder="nostrconnect://…"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <button id="ncBtnStatus" class="btn">
+                                connect
+                            </button>
+                        </div>
+                    </section>
+
+                    <section class="card" id="cardBunker" hidden>
+                        <h2 class="card__title">bunker url</h2>
+                        <p class="card__hint"></p>
+                        <div id="qrWrap" class="qr-wrap"></div>
+                        <div class="copyrow">
+                            <code id="bunkerUri" class="mono uri"></code>
+                            <button
+                                class="btn btn--ghost"
+                                data-copy="#bunkerUri"
+                            >
+                                copy
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="clients">
+                <div class="seal-stage">
+                    <div class="prompt">
+                        clients<span class="cursor">█</span>
+                    </div>
+                </div>
+                <div class="stack">
+                    <section class="card">
+                        <h2 class="card__title">
+                            <span>connected clients</span>
+                            <span id="clientCount" class="pill">0</span>
+                        </h2>
+                        <div class="ncrow">
+                            <input
+                                id="ncInput"
+                                class="input mono"
+                                placeholder="nostrconnect://…"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <button id="ncBtn" class="btn">connect</button>
+                        </div>
+                        <div id="clientList" class="list"></div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="key">
+                <div class="seal-stage">
+                    <div class="prompt">key<span class="cursor">█</span></div>
+                </div>
+                <div class="stack">
+                    <section class="card">
+                        <h2 class="card__title">private key</h2>
+                        <div id="keyBody"></div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="relays">
+                <div class="seal-stage">
+                    <div class="prompt">
+                        relays<span class="cursor">█</span>
+                    </div>
+                </div>
+                <div class="stack">
+                    <section class="card">
+                        <h2 class="card__title">relays</h2>
+                        <p class="card__hint">
+                            changes apply on the next daemon start.
+                        </p>
+                        <div class="ncrow">
+                            <input
+                                id="relayInput"
+                                class="input mono"
+                                placeholder="wss://relay.example.com"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                            <button id="relayBtn" class="btn">add</button>
+                        </div>
+                        <p class="card__hint">add umbrel local relay</p>
+                        <label class="ncrow">
+                            advertised
+                            <input
+                                id="localRelayAdvertise"
+                                class="input mono"
+                                placeholder="e.g. ws://umbrel:4848"
+                                autocomplete="off"
+                                spellcheck="false"
+                            />
+                        </label>
+                        <div class="ncrow">
+                            <label class="local-relay-input-wrap">
+                                internal
+                                <input
+                                    id="localRelayInternal"
+                                    class="input mono"
+                                    placeholder="e.g. ws://nostr-relay_relay_1:8080"
+                                    value="ws://nostr-relay_relay_1:8080"
+                                    autocomplete="off"
+                                    spellcheck="false"
+                                />
+                            </label>
+                            <button id="localRelayBtn" class="btn">add</button>
+                        </div>
+                        <p class="card__hint">
+                            enter the advertised address clients connect to
+                            (e.g. ws://umbrel:4848 or your Tailscale URL), and
+                            the internal address the daemon connects to on
+                            umbrel's local network (e.g.
+                            ws://nostr-relay_relay_1:8080).
+                        </p>
+                        <div id="relayList" class="list"></div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab="settings">
+                <div class="seal-stage">
+                    <div class="prompt">
+                        settings<span class="cursor">█</span>
+                    </div>
+                </div>
+                <div class="stack">
+                    <section class="card">
+                        <h2 class="card__title">settings</h2>
+                        <label class="switch">
+                            <input type="checkbox" id="persistToggle" />
+                            <span class="switch__track"
+                                ><span class="switch__thumb"></span
+                            ></span>
+                            <span class="switch__text">
+                                <b>persist secret</b>
+                                <small
+                                    >· option for whether previous connections
+                                    stay valid across daemon restarts.<br />·
+                                    when on, the secret and authorized clients
+                                    are saved, so the same bunker:// url and
+                                    existing connections (bunker·nostrconnect)
+                                    persist across reboots.<br />· when off, a
+                                    new secret is generated on each start, so
+                                    you must pair again.<br />· changes apply on
+                                    the next daemon start.</small
+                                >
+                            </span>
+                        </label>
+                    </section>
+
+                    <section class="card">
+                        <h2 class="card__title">web access</h2>
+                        <p class="card__hint">
+                            the password protects this control panel. logging
+                            out clears your session on this device.
+                        </p>
+                        <div class="kv">
+                            <span class="kv__k">session</span>
+                            <button id="logoutBtn" class="btn btn--ghost">
+                                log out
+                            </button>
+                        </div>
+                        <details class="pwchange">
+                            <summary class="card__title">
+                                change password
+                            </summary>
+                            <div class="field">
+                                <label class="field__label"
+                                    >current password</label
+                                >
+                                <input
+                                    id="pwCurrent"
+                                    class="input"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    spellcheck="false"
+                                />
+                            </div>
+                            <div class="field">
+                                <label class="field__label">new password</label>
+                                <input
+                                    id="pwNext"
+                                    class="input"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    spellcheck="false"
+                                />
+                            </div>
+                            <div class="field">
+                                <label class="field__label"
+                                    >confirm new password</label
+                                >
+                                <input
+                                    id="pwNext2"
+                                    class="input"
+                                    type="password"
+                                    autocomplete="new-password"
+                                    spellcheck="false"
+                                />
+                            </div>
+                            <button
+                                id="pwChangeBtn"
+                                class="btn btn--green btn--block"
+                            >
+                                update password
+                            </button>
+                        </details>
+                    </section>
+
+                    <section class="card">
+                        <details id="logDetails">
+                            <summary class="card__title">daemon log</summary>
+                            <pre id="logBox" class="logbox mono"></pre>
+                        </details>
+                    </section>
+
+                    <p class="app-version">version {{VERSION}}</p>
+                </div>
+            </section>
+        </main>
+
+        <nav class="tabbar" role="tablist">
+            <button
+                class="tabbtn active"
+                data-go="status"
+                role="tab"
+                aria-selected="true"
+            >
+                <span class="tabnum">01</span><span>status</span>
+            </button>
+            <button
+                class="tabbtn"
+                data-go="clients"
+                role="tab"
+                aria-selected="false"
+            >
+                <span class="tabnum">02</span><span>clients</span
+                ><span id="navClients" class="dot" hidden></span>
+            </button>
+            <button
+                class="tabbtn"
+                data-go="key"
+                role="tab"
+                aria-selected="false"
+            >
+                <span class="tabnum">03</span><span>key</span>
+            </button>
+            <button
+                class="tabbtn"
+                data-go="relays"
+                role="tab"
+                aria-selected="false"
+            >
+                <span class="tabnum">04</span><span>relays</span>
+            </button>
+            <button
+                class="tabbtn"
+                data-go="settings"
+                role="tab"
+                aria-selected="false"
+            >
+                <span class="tabnum">05</span><span>settings</span>
+            </button>
+        </nav>
+
+        <div id="modalBack" class="modal-back" hidden>
+            <div class="modal" role="dialog" aria-modal="true">
+                <h3 id="modalTitle" class="modal__title"></h3>
+                <div id="modalBody" class="modal__body"></div>
+                <div id="modalActions" class="modal__actions"></div>
+            </div>
+        </div>
+
+        <script src="app.js"></script>
+    </body>
+</html>
